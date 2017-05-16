@@ -73,7 +73,12 @@ public class Publisher<E> implements Runnable {
 
                         for(Listener<E> listener3 : setoflistener3)
                         {
-                            listener3.onEvent(next.first(), (E) next.second() );
+
+                            //dataItem.setIndex( next.third());
+                            //dataItem.setValue( next.second());
+                            String format = String.format("{%s|%s}", next.third(), next.second());
+
+                            listener3.onEvent(next.first(), (E) format );
                         }
                     /*for(Listener<E> listener: listeners.get(next.first())) {
                         listener.onEvent(next.first(), next.second() );*/

@@ -50,7 +50,6 @@ public class QuoteSource implements Source<String>  {
             Thread.sleep(sleepTime);
             //Thread.sleep(1);
 
-
             //As soon as choose a random word, disregard in the the next time
 
             int chooseQuote = Math.random() < 0.5 ? 0 : 1;
@@ -61,16 +60,17 @@ public class QuoteSource implements Source<String>  {
             synchronized (lock1) {
                 int index = ((int) (Math.random() * quoteMap.size())) % quoteMap.size();
 
-                int j = 0; //Position in the array.
-                int key = 0; //key found;
-
-
                 //Retrieved key and value
                 String value = (new ArrayList<String>(quoteMap.values())).get(index);
-                key = (new ArrayList<Integer>(quoteMap.keySet())).get(index);
+                int key = (new ArrayList<Integer>(quoteMap.keySet())).get(index);
 
                 quoteMap.remove(key);
 
+                //Implement a trick. If key sent is negative, I consider the end of the subscription
+                //If it is zero, I'll send Integer.MIN_VALUE
+                if (quoteMap.size() == 0) {
+                    key = (key == 0) ? Integer.MIN_VALUE : -key;
+                }
                 return new Tuple<String, String, Integer>("Quote_" + (chooseQuote + 1), value, key);
             }
         } catch (InterruptedException e) {

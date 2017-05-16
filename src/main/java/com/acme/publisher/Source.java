@@ -7,7 +7,7 @@ import com.acme.util.Pair;
 
 public interface Source<E> {
 
-    //Chanel, word, position
+    //Channel, word, position
     Tuple<String, E, Integer> getNext();
 
 }

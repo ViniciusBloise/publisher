@@ -1,5 +1,6 @@
 package com.acme.impl;
 
+import com.acme.publisher.DataItem;
 import com.acme.publisher.Publisher;
 import com.acme.subscriber.Subscriber;
 import com.acme.publisher.Source;
@@ -48,10 +49,10 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
         QuoteSource source = new QuoteSource();
         //source.WriteQuoteMap();
 
-        Publisher<Source<String>> publisher = new Publisher(source);
+        Publisher<DataItem> publisher = new Publisher(source);
 
-        Subscriber<Source<String>> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
-        Subscriber<Source<String>> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
+        Subscriber<DataItem> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
+        Subscriber<DataItem> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
 
         Thread t1 = new Thread( publisher );
         //t1.setName("Publisher");
