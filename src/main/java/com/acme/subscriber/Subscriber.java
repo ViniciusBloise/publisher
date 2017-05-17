@@ -16,11 +16,16 @@ public class Subscriber<E> implements Listener<E> {
     private ArrayList<DataItem<String>> joinedList;
     private Object lock1 = new Object();
 
+    private Publisher<E> publisher;
+    private String channel;
 
-    public Subscriber(String name, String channel, Publisher<E> publisher) {
+
+    public Subscriber( String name,  String channel,  Publisher<E> publisher) {
         this.name = name;
         joinedList = new ArrayList<>(10);
 
+        this.publisher = publisher;
+        this.channel = channel;
         publisher.subscribe(channel, this);
     }
 
@@ -31,7 +36,7 @@ public class Subscriber<E> implements Listener<E> {
         DataItem<String> dataItem = new DataItem<>(e.toString());
         boolean terminate = (dataItem.getIndex() < 0);
 
-        if(terminate) {
+        if (terminate) {
             int index = dataItem.getIndex();
             if (index == Integer.MIN_VALUE)
                 index = 0;
@@ -39,36 +44,29 @@ public class Subscriber<E> implements Listener<E> {
 
         }
         synchronized (lock1) {
-            joinedList.add( dataItem);
+            joinedList.add(dataItem);
         }
         //System.out.println(name + ": received an event: " + e.toString());
 
         if(terminate)
-        {
-            //Order the DataItem list
-            Collections.sort( joinedList, (a, b) -> a.compareTo(b));
-
-            //System.out.print("..... Terminated ....");
-
-            List<DataItem<String>> list = this.joinedList;
-            /*for(a : list.listIterator())
-            {
-                //System.out.print()
-            }
-            */
-
-            for (int i = 0; i < list.size(); i++) {
-                DataItem<String> item = list.get(i);
-                System.out.print(item.getValue() + " ");
-            }
-
-            System.out.println();
-        }
-
+            onCompleted();
     }
 
-    public void terminate( E e)
-    {
-       // DataItem<String> dataItem = e.t
+    private void onCompleted() {
+        //Order the DataItem list
+        Collections.sort(joinedList, (a, b) -> a.compareTo(b));
+
+        //System.out.print("..... Terminated ....");
+
+        System.out.print( String.format("%s: ", this.name));
+        List<DataItem<String>> list = this.joinedList;
+
+        for (int i = 0; i < list.size(); i++) {
+            DataItem<String> item = list.get(i);
+            System.out.print(item.getValue() + " ");
+        }
+        System.out.println();
+
+        this.publisher.unsubscribe(channel, this );
     }
 }

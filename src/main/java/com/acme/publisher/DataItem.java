@@ -44,7 +44,7 @@ public class DataItem<E> {
         return String.format("{index=%s|value=%s}", this.index, this.value);
     }
 
-    public DataItem( String serialized)
+    public DataItem(String serialized)
     {
         String first;
         String last;

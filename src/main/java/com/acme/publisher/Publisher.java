@@ -1,58 +1,71 @@
 package com.acme.publisher;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.Set;
 
 import com.acme.util.Tuple;
 
+/**
+ * Publisher, first version - checked subscribe and unsubscribe
+ * @param <E>
+ */
 public class Publisher<E> implements Runnable {
 
     private final Source<String> source;
     //Channel, listener
+    //Here I'm using a Set instead of List to avoid duplicate listeners (same object)
     private final ConcurrentHashMap<String, Set<Listener<E>>> hashofListeners = new ConcurrentHashMap<>(10);
 
-    private Object lock1 = new Object();
-    private Object lock2 = new Object();
+    private final Object lock1 = new Object();
+    private final Object lock2 = new Object();
 
     public Publisher(Source<String> source) {
         this.source = source;
     }
 
-
-    public void subscribe(String channel, Listener<E> listener)
-    {
-        //If there's already a channel
-        if(hashofListeners.containsKey(channel)) {
-            synchronized (lock1) {
+    /**
+     * Subscribe a listener of quotes to a certain channel. There can be multiple listeners subscribing to that same channel
+     * Channel is bound to a quote. When the quote finishes to the listener, it can publish it in a correct order
+     * @param channel
+     * @param listener
+     */
+    public void subscribe(String channel, Listener<E> listener) {
+        //Starts a thread safe zone to create the hash and hashSet of listeners
+        synchronized (lock1) {
+            //If there's already a channel, get the channel and add the listener to the others in a hashSet (thread safe)
+            if (hashofListeners.containsKey(channel)) {
                 Set<Listener<E>> setofListeners = hashofListeners.get(channel);
-                if(setofListeners == null) {
+                if (setofListeners == null) {
                     setofListeners = new HashSet<>();
                 }
-                setofListeners.add( listener );
-            }
-        }
-        else {
-            Set<Listener<E>> setofListeners2 = new HashSet<>();
-            setofListeners2.add( listener );
+                setofListeners.add(listener);
+            } //If there isn't a channel, create the channel and the new hashSet (thread safe List)
+            else {
+                Set<Listener<E>> setofListeners2 = new HashSet<>();
+                setofListeners2.add(listener);
 
-            synchronized (lock1) {
                 hashofListeners.put(channel, setofListeners2);
             }
         }
+    }
 
-    }
- /*   public synchronized void subscribe(String channel, Listener<E> listener) {
-        listeners.get(channel).add(listener);
-    }*/
-/*
-    public synchronized void unsubscribe(String channel, Listener<E> listener) {
-        List<Listener<E>> lst = listeners.get(channel);
-        lst.remove(listener);
-    }
-*/
+    /**
+     * Unsubscribe a listener of quotes
+     * @param channel
+     * @param listener
+     */
+     public void unsubscribe(String channel, Listener<E> listener) {
+
+         //Starts the same thread safe area as in the subscribe method
+         synchronized (lock1)
+         {
+             if(hashofListeners.containsKey(channel)) {
+                 Set<Listener<E>> setofListeners = hashofListeners.get(channel);
+                 setofListeners.remove(listener);
+             }
+         }
+     }
+
     @Override
     public void run() {
         System.out.println("Thread started running. 1");
@@ -73,15 +86,10 @@ public class Publisher<E> implements Runnable {
 
                         for(Listener<E> listener3 : setoflistener3)
                         {
-
-                            //dataItem.setIndex( next.third());
-                            //dataItem.setValue( next.second());
                             String format = String.format("{%s|%s}", next.third(), next.second());
 
                             listener3.onEvent(next.first(), (E) format );
                         }
-                    /*for(Listener<E> listener: listeners.get(next.first())) {
-                        listener.onEvent(next.first(), next.second() );*/
                     }
                 }
             } catch(Throwable t) {
@@ -89,5 +97,4 @@ public class Publisher<E> implements Runnable {
             }
         }
     }
-
 }

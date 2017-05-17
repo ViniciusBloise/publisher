@@ -44,7 +44,33 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
      2. use jdk 1.8 features
 
     */
-    public static void main(String [] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException {
+
+        QuoteFactory quoteFactory = QuoteFactory.getInstance();
+
+        String[] quotes = quoteFactory.loadQuotes("Quotes.txt");
+
+        QuoteSource source = new QuoteSource();
+        source.addQuoteUnit( new QuoteUnit("Quote_1", quotes[0]));
+        source.addQuoteUnit( new QuoteUnit("Quote_2", quotes[1]));
+
+        Publisher<DataItem> publisher = new Publisher<>(source);
+
+        Subscriber<DataItem> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
+        Subscriber<DataItem> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
+
+        Thread t1 = new Thread(publisher);
+        //t1.setName("Publisher");
+
+        t1.start();
+
+        //t1.sleep(60 * 000);
+        Thread.currentThread().join(10 * 1000);
+
+        System.exit(0);
+    }
+
+    private static void main2(String[] args) throws InterruptedException {
 
         QuoteSource source = new QuoteSource();
         //source.WriteQuoteMap();
@@ -54,13 +80,13 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
         Subscriber<DataItem> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
         Subscriber<DataItem> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
 
-        Thread t1 = new Thread( publisher );
+        Thread t1 = new Thread(publisher);
         //t1.setName("Publisher");
 
         t1.start();
 
         //t1.sleep(60 * 000);
-        Thread.currentThread().join(60*1000);
+        Thread.currentThread().join(60 * 1000);
 
         System.exit(0);
 
