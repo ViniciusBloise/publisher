@@ -5,11 +5,14 @@ import com.acme.publisher.DataItem;
 import com.acme.publisher.Listener;
 import com.acme.publisher.Publisher;
 import com.acme.publisher.Source;
+import com.acme.util.Tuple;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 public class Subscriber<E> implements Listener<E> {
 
@@ -20,6 +23,51 @@ public class Subscriber<E> implements Listener<E> {
     private Publisher<E> publisher;
     private String channel;
 
+    public static File[] retrieveFiles()
+    {
+        File dir = new File(System.getProperty("user.home"));
+        File[] files = dir.listFiles((d, name) -> name.startsWith("subscriber"));
+
+        return files;
+    }
+
+    /**
+     * Name, Channel, serialized list
+     * @param file
+     * @return
+     */
+    public static Tuple<String, String, String> upLoadFromFile(File file)
+    {
+        String regex = "^subscriber\\.(.+)\\.(.+)\\.txt";
+
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher( file.getName());
+        boolean b = m.matches();
+
+        String name = m.group(0);
+        String channel = m.group(1);
+
+        //Readfile
+        String serializedList = "";
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+
+            StringBuilder sb = new StringBuilder();
+            String line = br.readLine();
+
+            while (line != null) {
+                sb.append(line);
+                sb.append("\n");
+                line = br.readLine();
+            }
+            serializedList =  sb.toString();
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+        return new Tuple<String,String,String>(name, channel, serializedList);
+
+    }
+
     //use persistent to write state before crash
     public void setPersistent(boolean persistent) {
         this.persistent = persistent;
@@ -27,13 +75,22 @@ public class Subscriber<E> implements Listener<E> {
 
     private boolean persistent = false;
 
+    public void setPublisher(Publisher<E> publisher) {
+        this.publisher = publisher;
+    }
+
+    public Subscriber( Publisher<E> publisher)
+    {
+        this.setPublisher( publisher);
+        joinedList = new ArrayList<>(10);
+
+    }
 
     public Subscriber( String name,  String channel,  Publisher<E> publisher) {
         this.name = name;
+        this.channel = channel;
         joinedList = new ArrayList<>(10);
 
-        this.publisher = publisher;
-        this.channel = channel;
         publisher.subscribe(channel, this);
     }
 

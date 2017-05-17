@@ -27,8 +27,8 @@ public class QuoteSource implements Source<String>  {
 
             //System.out.println("Source gets next.");
             long sleepTime =(long)(Math.random()*2000);
-            //Thread.sleep(sleepTime);
-            Thread.sleep(1);
+            Thread.sleep(sleepTime);
+            //Thread.sleep(1);
 
             //As soon as choose a random word, disregard in the the next time
             int chooseQuote = Math.random() < 0.5 ? 0 : 1;

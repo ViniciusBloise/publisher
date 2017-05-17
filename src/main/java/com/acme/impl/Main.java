@@ -4,6 +4,9 @@ import com.acme.publisher.DataItem;
 import com.acme.publisher.Publisher;
 import com.acme.subscriber.Subscriber;
 import com.acme.publisher.Source;
+import com.acme.util.Tuple;
+
+import java.io.File;
 
 public class Main {
 
@@ -50,6 +53,13 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
 
         String[] quotes = quoteFactory.loadQuotes("Quotes.txt");
 
+        /** This commented lines are responsible for reading serialized version of Subscriber
+        File[] files = Subscriber.retrieveFiles();
+        for(File f : files) {
+            Tuple<String, String, String> item = Subscriber.upLoadFromFile(f);
+        }
+        */
+
         QuoteSource source = new QuoteSource();
         source.addQuoteUnit( new QuoteUnit("Quote_1", quotes[0]));
         source.addQuoteUnit( new QuoteUnit("Quote_2", quotes[1]));
@@ -59,14 +69,17 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
         Subscriber<DataItem> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
         Subscriber<DataItem> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
 
-        //s1.setPersistent(true);
+        /** These commented lines refer to serialization of the Subscriber
+        s1.setPersistent(true);
+        s2.setPersistent(true); */
+
         Thread t1 = new Thread(publisher);
         //t1.setName("Publisher");
 
         t1.start();
 
         //t1.sleep(60 * 000);
-        Thread.currentThread().join(10 * 1000);
+        Thread.currentThread().join(60 * 1000);
 
         System.exit(0);
     }
