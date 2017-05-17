@@ -6,6 +6,7 @@ import com.acme.publisher.Listener;
 import com.acme.publisher.Publisher;
 import com.acme.publisher.Source;
 
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -14,10 +15,17 @@ public class Subscriber<E> implements Listener<E> {
 
     String name;
     private ArrayList<DataItem<String>> joinedList;
-    private Object lock1 = new Object();
+    private final Object lock1 = new Object();
 
     private Publisher<E> publisher;
     private String channel;
+
+    //use persistent to write state before crash
+    public void setPersistent(boolean persistent) {
+        this.persistent = persistent;
+    }
+
+    private boolean persistent = false;
 
 
     public Subscriber( String name,  String channel,  Publisher<E> publisher) {
@@ -48,8 +56,32 @@ public class Subscriber<E> implements Listener<E> {
         }
         //System.out.println(name + ": received an event: " + e.toString());
 
+        if(persistent)
+            onPersist(dataItem);
+
         if(terminate)
             onCompleted();
+    }
+
+    /**
+     * Code to persist data and retrieve from where it stopped
+     * @param dataItem
+     */
+    private void onPersist(DataItem<String> dataItem) {
+        //write a file named ".subscriber.{name}.{channel}.txt" with all the serialized joinedList
+        String fileName = String.format("/subscriber.%s.%s.txt", this.name, this.channel);
+
+        File pathFile = new File(new File(System.getProperty("user.home")), fileName);
+
+        try (BufferedWriter bf = new BufferedWriter(new FileWriter(pathFile, true))) {
+            bf.write(dataItem.toString() + "\n");
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+        finally {
+
+        }
     }
 
     private void onCompleted() {

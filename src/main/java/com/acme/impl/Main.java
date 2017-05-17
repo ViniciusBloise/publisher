@@ -59,6 +59,7 @@ Subscriber-1: Beware of bugs in the above code; I have only proved it correct, n
         Subscriber<DataItem> s1 = new Subscriber<>("Subscriber-1", "Quote_1", publisher);
         Subscriber<DataItem> s2 = new Subscriber<>("Subscriber-2", "Quote_2", publisher);
 
+        //s1.setPersistent(true);
         Thread t1 = new Thread(publisher);
         //t1.setName("Publisher");
 
